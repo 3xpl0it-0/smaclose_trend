@@ -36,7 +36,6 @@ df["rolling_vol"] = (
       .std()
 )
 
-# 20% annulised volatility
 ret_target_vol = target_volatility/math.sqrt(365)
 
 df['volscaled_next_ret'] = df['next_ret']*(ret_target_vol/df['rolling_vol'])
@@ -185,6 +184,7 @@ plt.ylabel("Cumulative Return")
 plt.grid(True, linestyle='--', alpha=0.5)
 plt.legend()
 plt.show()
+
 
 
 
