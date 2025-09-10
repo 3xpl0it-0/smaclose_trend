@@ -9,27 +9,35 @@ import math
 ## --- NOTES --- 
 # anything hardcoded has been information aquired from previous analysis
 # start and limit is given to binance api instead of start and end as i had issues with the latter before
-# features aren't scaled to signals based on strength
+# features are scaled to signals linearly based on strength; max strength is target volatility
 
 # url's needed
 
 BINANCE_BASE_URL = 'https://fapi.binance.com'
 BINANCE_KLINE_URL = '/fapi/v1/klines'
 
-# set ticker, data window, target volatility, rolling volatility window and sma window
+# set ticker, data window, target volatility, rolling volatility window, sma window and lowest signal strength
 
 ticker = 'BTCUSDT'
 begin = 40
 target_volatility = 0.2
 rol_vol_window = 30
 sma_window = 30
+low_signal = 0.7
 
-# feature strengths
+# feature minimums
 
-seven = 1.048807
-eight = 1.077868
-nine = 1.119436
-ten = 1.219276
+seven_min = 1.035326
+eight_min = 1.062604
+nine_min = 1.094381
+ten_min = 1.148069
+
+# feature maximums
+
+seven_max = 1.062350
+eight_max = 1.094331
+nine_max = 1.148014
+ten_max = 1.545970
 
 # portfolio size
 
@@ -160,22 +168,37 @@ df["rolling_vol"] = (
 # target annulised volatility and position sizing
 
 ret_target_vol = target_volatility/math.sqrt(365)
-position_size = account*(ret_target_vol/df['rolling_vol'].iloc[-1])
+recent_vol_scaled = ret_target_vol/df['rolling_vol'].iloc[-1]
+diff = (1-low_signal)/3
 
 # creating feature
 
 df["sma"] = df["close"].rolling(window=sma_window).mean()
 df['feature'] = df['close']/df['sma']
 
-if df['feature'].iloc[-1] >= seven:
+if df['feature'].iloc[-1] >= seven_min:
     trade_position = 'long'
-
 else:
     trade_position = 'no trade'
+
+if seven_min <= df['feature'].iloc[-1] < eight_min:
+    position_size = account*low_signal*recent_vol_scaled
+
+elif eight_min <= df['feature'].iloc[-1] < nine_min:
+        position_size = account*(low_signal+diff)*recent_vol_scaled
+        
+elif nine_min <= df['feature'].iloc[-1] < ten_min:
+        position_size = account*(low_signal+diff*2)*recent_vol_scaled
+        
+elif ten_min <= df['feature'].iloc[-1]:
+        position_size = account*(low_signal+diff*3)*recent_vol_scaled
+else:
+    position_size = 0
     
 # return trade and sizing information
     
 print(f'trade: {trade_position} | size: {position_size}')
+
 
 
 
