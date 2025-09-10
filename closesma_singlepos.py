@@ -9,6 +9,7 @@ import math
 ## --- NOTES --- 
 # anything hardcoded has been information aquired from previous analysis
 # start and limit is given to binance api instead of start and end as i had issues with the latter before
+# features aren't scaled to signals based on strength
 
 # url's needed
 
@@ -175,6 +176,7 @@ else:
 # return trade and sizing information
     
 print(f'trade: {trade_position} | size: {position_size}')
+
 
 
 
